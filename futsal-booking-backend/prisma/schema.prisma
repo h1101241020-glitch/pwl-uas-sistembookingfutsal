@@ -1,0 +1,157 @@
+// prisma/schema.prisma
+// Website Booking Lapangan Futsal Online — Pontianak
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUM
+// ─────────────────────────────────────────────
+
+enum Role {
+  player
+  owner
+}
+
+enum SurfaceType {
+  vinyl
+  grass
+  parquet
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+// ─────────────────────────────────────────────
+// TABEL: users
+// ─────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(uuid())
+  name         String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(150)
+  phone        String?   @unique @db.VarChar(20)
+  passwordHash String    @db.VarChar(255)
+  role         Role
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relasi
+  venues   Venue[]
+  bookings Booking[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// TABEL: venues
+// ─────────────────────────────────────────────
+
+model Venue {
+  id          String   @id @default(uuid())
+  ownerId     String
+  name        String   @db.VarChar(150)
+  description String?  @db.Text
+  address     String   @db.VarChar(255)
+  latitude    Float?
+  longitude   Float?
+  city        String   @default("Pontianak") @db.VarChar(100)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  owner          User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fields         Field[]
+  operatingHours OperatingHour[]
+
+  @@map("venues")
+}
+
+// ─────────────────────────────────────────────
+// TABEL: fields
+// ─────────────────────────────────────────────
+
+model Field {
+  id          String      @id @default(uuid())
+  venueId     String
+  name        String      @db.VarChar(100)
+  surfaceType SurfaceType
+  pricePerHour Int
+  isActive    Boolean     @default(true)
+
+  // Relasi
+  venue    Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  images   FieldImage[]
+  bookings Booking[]
+
+  @@map("fields")
+}
+
+// ─────────────────────────────────────────────
+// TABEL: field_images
+// ─────────────────────────────────────────────
+
+model FieldImage {
+  id        String  @id @default(uuid())
+  fieldId   String
+  imageUrl  String  @db.VarChar(500)
+  isPrimary Boolean @default(false)
+
+  // Relasi
+  field Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@map("field_images")
+}
+
+// ─────────────────────────────────────────────
+// TABEL: operating_hours
+// ─────────────────────────────────────────────
+
+model OperatingHour {
+  id         String   @id @default(uuid())
+  venueId    String
+  dayOfWeek  Int      @db.SmallInt // 0=Minggu, 1=Senin, ..., 6=Sabtu
+  openTime   DateTime @db.Time()
+  closeTime  DateTime @db.Time()
+
+  // Relasi
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, dayOfWeek], name: "unique_venue_day")
+  @@map("operating_hours")
+}
+
+// ─────────────────────────────────────────────
+// TABEL: bookings
+// ─────────────────────────────────────────────
+
+model Booking {
+  id          String        @id @default(uuid())
+  fieldId     String
+  userId      String
+  bookingDate DateTime      @db.Date
+  startTime   DateTime      @db.Time()
+  endTime     DateTime      @db.Time()
+  totalPrice  Int
+  status      BookingStatus @default(pending)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relasi
+  field Field @relation(fields: [fieldId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  // Constraint: cegah double booking (Lapis 2)
+  @@unique([fieldId, bookingDate, startTime, endTime], name: "no_double_booking")
+  @@map("bookings")
+}

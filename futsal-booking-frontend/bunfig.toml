@@ -1,0 +1,7 @@
+[install]
+# Gunakan registry npm default via Bun
+registry = "https://registry.npmjs.org"
+
+[install.cache]
+# Cache packages agar install lebih cepat
+dir = "~/.bun/install/cache"

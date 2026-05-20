@@ -1,0 +1,31 @@
+{
+  "name": "futsal-booking-backend",
+  "version": "1.0.0",
+  "description": "Backend API - Website Booking Lapangan Futsal Online Pontianak",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:migrate:prod": "bunx prisma migrate deploy",
+    "db:studio": "bunx prisma studio",
+    "db:seed": "bun run prisma/seed.ts",
+    "db:reset": "bunx prisma migrate reset"
+  },
+  "dependencies": {
+    "elysia": "^1.2.0",
+    "@elysiajs/jwt": "^1.2.0",
+    "@elysiajs/cors": "^1.2.0",
+    "@elysiajs/swagger": "^1.2.0",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.23.8",
+    "cloudinary": "^2.4.0",
+    "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.6.3"
+  }
+}
