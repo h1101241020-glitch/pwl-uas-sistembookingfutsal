@@ -19,7 +19,15 @@ const app = new Elysia()
   // ── CORS ──────────────────────────────────────────────
   .use(
     cors({
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      origin: (request) => {
+        const origin = request.headers.get("origin") || "";
+        const allowed = [
+          process.env.FRONTEND_URL || "",
+          "http://localhost:5173",
+          "http://localhost:3000",
+        ];
+        return allowed.includes(origin);
+      },
       methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
